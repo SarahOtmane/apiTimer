@@ -7,7 +7,7 @@ exports.userRegister = async(req, res) =>{
         let newUser = new User(req.body);  
         let user = await newUser.save();
         res.status(201).json({message: `User créer: ${user.email}`});
-    } catch (error) {
+    } catch(error){
         res.status(401).json({message: 'Requete invalide'});
     }
 }
@@ -21,7 +21,7 @@ exports.loginRegister = async(req, res) =>{
             res.status(500).json({message: "utilisateur non trouvé"});
             return;
         }else{
-            if(user.email == req.body.email && user.password == req.body.password && user.role == req.body.role ){
+            if(user.email == req.body.email && user.password == req.body.password){
                 const userData = {
                     id: user._id,
                     email: user.email,
@@ -34,6 +34,25 @@ exports.loginRegister = async(req, res) =>{
                 res.status(401).json({message: 'Email ou password incorrect'});
             }
         }
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({message: 'Une erreur s est produite lors du traitement'});
+    }
+}
+
+
+exports.userModify = async(req, res) =>{
+    try {
+        const user = await User.findOne({email: req.body.email});
+        if(!user){
+            res.status(500).json({message: "utilisateur non trouvé"});
+            return;
+        }else{
+            let newUser = new User(req.body);  
+            let user = await newUser.save();
+            res.status(201).json({message: `User modifié`});
+        }
+        
     } catch (error) {
         console.log(error);
         res.status(500).json({message: 'Une erreur s est produite lors du traitement'});
