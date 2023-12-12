@@ -41,20 +41,20 @@ exports.loginRegister = async(req, res) =>{
 }
 
 
-exports.userModify = async(req, res) =>{
-    try {
-        const user = await User.findOne({email: req.body.email});
-        if(!user){
-            res.status(500).json({message: "utilisateur non trouvé"});
-            return;
-        }else{
-            let newUser = new User(req.body);  
-            let user = await newUser.save();
-            res.status(201).json({message: `User modifié`});
-        }
+// exports.userModify = async(req, res) =>{
+//     try {
+//         const user = await User.findOne({email: req.body.email});
+//         if(!user){
+//             res.status(500).json({message: "utilisateur non trouvé"});
+//             return;
+//         }else{
+//             let newUser = new User(req.body);  
+//             let user = await newUser.save();
+//             res.status(201).json({message: `User modifié`});
+//         }
         
-    } catch (error) {
-        console.log(error);
-        res.status(500).json({message: 'Une erreur s est produite lors du traitement'});
-    }
-}
+//     } catch (error) {
+//         console.log(error);
+//         res.status(500).json({message: 'Une erreur s est produite lors du traitement'});
+//     }
+// }
