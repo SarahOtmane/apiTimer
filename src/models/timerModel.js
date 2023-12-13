@@ -12,4 +12,4 @@ let timerSchema = new Schema({
     }
 });
 
-module.exports = mongoose.model('User', timerSchema);
+module.exports = mongoose.model('Timer', timerSchema);
