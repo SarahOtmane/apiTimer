@@ -5,9 +5,13 @@ const timerController = require('../controllers/timerController');
 const jwtMiddlewares = require('../middlewares/jwtMiddleware');
 
 router
-    .route('/times')
-    // .get(timerController.)
-     .post(jwtMiddlewares.verifyToken ,timerController.createATimer)
+    .route('/timer')
+    .get(jwtMiddlewares.verifyToken ,timerController.listAllTimes)
+    .post(jwtMiddlewares.verifyToken ,timerController.createATimer)
 
+
+router
+    .route('/timer/average')
+    .get(jwtMiddlewares.verifyToken ,timerController.averageTime)
 
 module.exports = router;
