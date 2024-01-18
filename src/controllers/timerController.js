@@ -1,47 +1,46 @@
-const User = require('../models/userModel');
+const Timer = require('../models/timerModel');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
-exports.userRegister = async(req, res) =>{
+exports.createATimer = async(req, res) =>{
     try {
-        let newUser = new User(req.body);  
-        let user = await newUser.save();
-        res.status(201).json({message: `User créer: ${user.email}`});
-    } catch(error){
-        res.status(401).json({message: 'Requete invalide'});
-    }
-}
+        let token = req.headers['authorization'];
+        if(token != undefined){
+            const payload = await new Promise((resolve, reject) =>{
+                jwt.verify(token, process.env.JWT_KEY, (error, decoded) =>{
+                    if(error){
+                        reject(error);
+                    }else{
+                        resolve(decoded);
+                    }
+                })
+            })
 
+        req.user = payload;
 
-exports.loginRegister = async(req, res) =>{
-    try {
-        const user = await User.findOne({email: req.body.email});
-
-        if(!user){
-            res.status(500).json({message: "utilisateur non trouvé"});
-            return;
+        const newTime = new Timer({...req.body, user_id : req.user.id} ); 
+        try{
+            const time = await newTime.save();
+            res.status(200);
+            res.json(time);
+        }
+        catch(error){
+            res.status(500);
+                console.log(error);
+                res.json({ message : 'Erreur serveur (db)'});
+        }
         }else{
-            if(user.email == req.body.email && user.password == req.body.password){
-                const userData = {
-                    id: user._id,
-                    email: user.email,
-                    role: user.role
-                }
-
-                const token = await jwt.sign(userData, process.env.JWT_KEY, {expiresIn: '10h'});
-                res.status(200).json({token});
-            }else{
-                res.status(401).json({message: 'Email ou password incorrect'});
-            }
+            res.status(403).json({message: "Accès interdit: token manquant"});
         }
     } catch (error) {
-        console.log(error);
-        res.status(500).json({message: 'Une erreur s est produite lors du traitement'});
+        res.status(500);
+            console.log(error);
+            res.json({ message : 'Erreur serveur (user inexistant)'});
     }
 }
 
 
-exports.userModify = async(req, res) =>{
+exports.listAllTimes = async (req, res) =>{
     try {
         let token = req.headers['authorization'];
         if(token != undefined){
@@ -58,9 +57,9 @@ exports.userModify = async(req, res) =>{
         req.user = payload;
 
         try{
-            const user = await User.findByIdAndUpdate(req.user.id, req.body, {new: true});
+            const times = await Timer.find({user_id : req.user.id});
             res.status(200);
-            res.json(user);
+            res.json(times);
         }
         catch(error){
             res.status(500);
@@ -77,8 +76,7 @@ exports.userModify = async(req, res) =>{
     }
 }
 
-
-exports.deleteUser = async(req, res) =>{
+exports.averageTime = async (req, res) =>{
     try {
         let token = req.headers['authorization'];
         if(token != undefined){
@@ -95,9 +93,21 @@ exports.deleteUser = async(req, res) =>{
         req.user = payload;
 
         try{
-            const user = await User.findByIdAndDelete(req.user.id, req.body, {new: true});
+            const times = await Timer.find({user_id : req.user.id});
+            let tabTimes = [];
+            for(let i=0; i<times.length; i++){
+                tabTimes.push(times[i].time);
+            }
+
+            let average = 0;
+            for(let i=0; i<tabTimes.length; i++){
+                average += tabTimes[i];
+            }
+
+            average = average/tabTimes.length;
+
             res.status(200);
-            res.json({ message : 'Supprimé'});
+            res.json(average);
         }
         catch(error){
             res.status(500);
@@ -106,7 +116,7 @@ exports.deleteUser = async(req, res) =>{
         }
         }else{
             res.status(403).json({message: "Accès interdit: token manquant"});
-        }  
+        }
     } catch (error) {
         res.status(500);
             console.log(error);
